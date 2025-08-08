@@ -1,0 +1,29 @@
+version: '3'
+services:
+  thehive:
+    image: strangebee/thehive:5.5.5-1
+    container_name: thehive
+    restart: unless-stopped
+    ports:
+      - "9002:9000"
+    depends_on:
+      - elasticsearch
+    volumes:
+      - ./thehive_data:/opt/thp/thehive/data
+    environment:
+      - storage.provider=elasticsearch
+      - storage.elasticsearch.uris=["http://elasticsearch:9200"]
+      - db.janusgraph.index.search.backend=elasticsearch
+      - db.janusgraph.index.search.hostname=["elasticsearch"]
+      - play.http.secret.key="0408f44de90932848b5857c065d3e620709daa415b8b66141bf1095b3414d13c1d437b81383dcd0bc564f9304cee27a84423190b27bd055b455aef335aaff8b9"
+
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.11.3
+    container_name: elasticsearch
+    restart: unless-stopped
+    environment:
+      - discovery.type=single-node
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+      - xpack.security.enabled=false
+    volumes:
+      - ./es_data:/usr/share/elasticsearch/data

@@ -1,0 +1,27 @@
+# docker-compose.yml
+
+services:
+  portainer:
+    # Imagen de Portainer Community Edition con soporte a largo plazo (LTS)
+    image: portainer/portainer-ce:lts
+    # Asigna un nombre al contenedor para fácil identificación
+    container_name: portainer
+    # Política de reinicio para que el contenedor se inicie automáticamente
+    restart: always
+    # Mapeo de puertos:
+    # - 8000: Para la interfaz de usuario a través del túnel Edge Agent
+    # - 9443: Para la interfaz de usuario web principal (HTTPS)
+    ports:
+      - "8100:8000"
+      - "9443:9443"
+    # Volúmenes para persistencia de datos y comunicación con Docker:
+    # - /var/run/docker.sock: Permite a Portainer gestionar otros contenedores Docker
+    # - portainer_data:/data: Almacena los datos de configuración de Portainer de forma persistente
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - portainer_data:/data
+
+# Definición del volumen nombrado para asegurar que los datos de Portainer persistan
+volumes:
+  portainer_data:
+    # El driver por defecto es 'local', no es necesario especificarlo
