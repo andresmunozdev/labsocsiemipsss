@@ -68,7 +68,7 @@ Podrás acceder a las interfaces web de cada herramienta a través de los siguie
 
 ---
 
-## 🛑 Gestionar la Pila
+## 🛑 Gestionar Contenedores
 
 * **Ver los logs de todos los contenedores:**
     ```bash
