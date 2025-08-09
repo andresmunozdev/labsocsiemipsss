@@ -1,0 +1,877 @@
+{
+  "name": "Wazuh-Avisos-TEST",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "wazuh",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -800,
+        144
+      ],
+      "id": "486e03b5-0c63-4ba9-82e6-7fdffe69c27a",
+      "name": "Webhook",
+      "webhookId": "8e381c33-4a94-4c0d-b23f-17659fd41864"
+    },
+    {
+      "parameters": {
+        "chatId": "-4975873153 ",
+        "text": "=Origen: {{ $json.body.manager.name }}\nTimeStamp: {{ $json.body.timestamp }}\nGrupo: {{ $json.body.rule.groups[0] }}\nDatos Agente\nID: {{ $json.body.agent.id }}\nName: {{ $json.body.agent.name }}\nIP: {{ $json.body.agent.ip }}\n\nID Alerta: {{ $json.body.data.virustotal.source.alert_id }}\nArchivo: {{ $json.body.data.virustotal.source.file }}\nMD5: {{ $json.body.data.virustotal.source.md5 }}\nSha1: {{ $json.body.data.virustotal.source.sha1 }}\nFecha Scan: {{ $json.body.data.virustotal.scan_date }}\nPermalink: {{ $json.body.data.virustotal.permalink }}\n\nWebhook: {{ $json.webhookUrl }}\n{{ $json.executionMode }}",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        544,
+        -256
+      ],
+      "id": "95ab34a1-8a80-4e71-a475-8724733c9481",
+      "name": "Send a text message",
+      "webhookId": "a663e07c-7e04-46c6-8dd8-d8c032d42440",
+      "credentials": {
+        "telegramApi": {
+          "id": "YNNElKeI4PU2kQzW",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "value": "notificaciones-soc-siem",
+          "mode": "name"
+        },
+        "text": "=Timestamp: {{ $json.body.timestamp }}\nDescripción: {{ $json.body.rule.description }}\nGrupo Alerta: {{ $json.body.rule.groups[0] }}\nAgente: {{ $json.body.agent.id }} - {{ $json.body.agent.name }}\nIP Agente: {{ $json.body.agent.ip }}\nArchivo: {{ $json.body.data.virustotal.source.file }}\nMD5: {{ $json.body.data.virustotal.source.md5 }}\nSHA1: {{ $json.body.data.virustotal.source.sha1 }}\nCant. Positivos: {{ $json.body.data.virustotal.positives }} de {{ $json.body.data.virustotal.total }}\nPermalink: {{ $json.body.data.virustotal.permalink }}",
+        "otherOptions": {}
+      },
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.3,
+      "position": [
+        544,
+        -80
+      ],
+      "id": "db7f4670-d188-4e74-a29a-53dcfe69895f",
+      "name": "Send a message",
+      "webhookId": "e7d35061-3d4e-4a90-8f3d-e1ee2e3a20a5",
+      "credentials": {
+        "slackApi": {
+          "id": "ETa6jb1r07OAfuIH",
+          "name": "Slack account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://ipciisa.webhook.office.com/webhookb2/83ff3c8d-9e87-4a36-8c8c-45d4e5160302@6385496d-f702-408a-b49f-04e48bbe3c60/IncomingWebhook/bdf6d16d5f60453b982dbf1ce18069fe/1f015907-d558-4a00-af7d-b52f9c465447/V2376ouPACyHCyQuHNjwzrjL4EwKT9WonLq8_mXyUFgNE1",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"type\": \"MessageCard\",\n  \"@context\": \"http://schema.org/extensions\",\n  \"@type\": \"MessageCard\",\n  \"Integracion\": \"{{ $json.body.data.integration }}\",\n  \"text\": \"{{ $json.body.location }}\",\n  \"sections\": [\n    {\n      \"activityTitle\": \"Detalles del Evento\",\n      \"facts\": [\n        {\n          \"name\": \"Archivo:\",\n          \"value\": \"{{ $json.body.data.virustotal.source.file }}\"\n        },\n        {\n          \"name\": \"Origen Alerta (Etiqueta):\",\n          \"value\": \"{{ $json.body.agent.name }} - IP:{{ $json.body.agent.ip }}  \"\n        },\n        {\n          \"name\": \"Permalink:\",\n          \"value\": \"{{ $json.body.data.virustotal.permalink }}\"\n        }\n      ],\n      \"markdown\": true\n    }\n  ]\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        544,
+        128
+      ],
+      "id": "eb6a65b1-fa5c-4957-824a-ac4b7d8c9379",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "resource": "case",
+        "caseFields": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "severity": 3,
+            "startDate": "={{ $json.body.timestamp }}",
+            "tags": "={{ $workflow.name }}",
+            "pap": 3,
+            "tlp": 3,
+            "summary": "={{ $json.body.rule.description }}",
+            "status": "New",
+            "assignee": "agente@thehive.local",
+            "title": "={{ $json.body.rule.description }}",
+            "description": "={{ $json.body.rule.groups[0] }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "displayName": "Title",
+              "id": "title",
+              "type": "string",
+              "removed": false,
+              "required": true,
+              "display": true,
+              "defaultMatch": false
+            },
+            {
+              "displayName": "Description",
+              "id": "description",
+              "type": "string",
+              "removed": false,
+              "required": true,
+              "display": true,
+              "defaultMatch": false
+            },
+            {
+              "displayName": "Severity (Severity of information)",
+              "id": "severity",
+              "type": "options",
+              "options": [
+                {
+                  "name": "Low",
+                  "value": 1
+                },
+                {
+                  "name": "Medium",
+                  "value": 2
+                },
+                {
+                  "name": "High",
+                  "value": 3
+                },
+                {
+                  "name": "Critical",
+                  "value": 4
+                }
+              ],
+              "removed": false,
+              "required": false,
+              "display": true,
+              "defaultMatch": false
+            },
+            {
+              "displayName": "Start Date",
+              "id": "startDate",
+              "type": "dateTime",
+              "removed": false,
+              "required": false,
+              "display": true,
+              "defaultMatch": false
+            },
+            {
+              "displayName": "End Date",
+              "id": "endDate",
+              "type": "dateTime",
+              "removed": false,
+              "required": false,
+              "display": true,
+              "defaultMatch": false
+            },
+            {
+              "displayName": "Tags",
+              "id": "tags",
+              "type": "string",
+              "removed": false,
+              "required": false,
+              "display": true,
+              "defaultMatch": false
+            },
+            {
+              "displayName": "Flag",
+              "id": "flag",
+              "type": "boolean",
+              "removed": false,
+              "required": false,
+              "display": true,
+              "defaultMatch": false
+            },
+            {
+              "displayName": "TLP (Confidentiality of information)",
+              "id": "tlp",
+              "type": "options",
+              "options": [
+                {
+                  "name": "White",
+                  "value": 0
+                },
+                {
+                  "name": "Green",
+                  "value": 1
+                },
+                {
+                  "name": "Amber",
+                  "value": 2
+                },
+                {
+                  "name": "Red",
+                  "value": 3
+                }
+              ],
+              "removed": false,
+              "required": false,
+              "display": true,
+              "defaultMatch": false
+            },
+            {
+              "displayName": "PAP (Level of exposure of information)",
+              "id": "pap",
+              "type": "options",
+              "options": [
+                {
+                  "name": "White",
+                  "value": 0
+                },
+                {
+                  "name": "Green",
+                  "value": 1
+                },
+                {
+                  "name": "Amber",
+                  "value": 2
+                },
+                {
+                  "name": "Red",
+                  "value": 3
+                }
+              ],
+              "removed": false,
+              "required": false,
+              "display": true,
+              "defaultMatch": false
+            },
+            {
+              "displayName": "Summary",
+              "id": "summary",
+              "type": "string",
+              "removed": false,
+              "required": false,
+              "display": true,
+              "defaultMatch": false
+            },
+            {
+              "displayName": "Status",
+              "id": "status",
+              "type": "options",
+              "removed": false,
+              "required": false,
+              "display": true,
+              "defaultMatch": false,
+              "options": [
+                {
+                  "name": "Duplicated",
+                  "value": "Duplicated",
+                  "description": "Stage: Closed"
+                },
+                {
+                  "name": "FalsePositive",
+                  "value": "FalsePositive",
+                  "description": "Stage: Closed"
+                },
+                {
+                  "name": "Indeterminate",
+                  "value": "Indeterminate",
+                  "description": "Stage: Closed"
+                },
+                {
+                  "name": "InProgress",
+                  "value": "InProgress",
+                  "description": "Stage: InProgress"
+                },
+                {
+                  "name": "New",
+                  "value": "New",
+                  "description": "Stage: New"
+                },
+                {
+                  "name": "Other",
+                  "value": "Other",
+                  "description": "Stage: Closed"
+                },
+                {
+                  "name": "TruePositive",
+                  "value": "TruePositive",
+                  "description": "Stage: Closed"
+                }
+              ]
+            },
+            {
+              "displayName": "Assignee",
+              "id": "assignee",
+              "type": "options",
+              "removed": false,
+              "required": false,
+              "display": true,
+              "defaultMatch": false,
+              "options": [
+                {
+                  "name": "agente",
+                  "value": "agente@thehive.local"
+                }
+              ]
+            },
+            {
+              "displayName": "Case Template",
+              "id": "caseTemplate",
+              "type": "options",
+              "removed": false,
+              "required": false,
+              "display": true,
+              "defaultMatch": false,
+              "options": []
+            },
+            {
+              "displayName": "Tasks",
+              "id": "tasks",
+              "type": "array",
+              "removed": false,
+              "required": false,
+              "display": true,
+              "defaultMatch": false
+            },
+            {
+              "displayName": "Sharing Parameters",
+              "id": "sharingParameters",
+              "type": "array",
+              "removed": true,
+              "required": false,
+              "display": true,
+              "defaultMatch": false
+            },
+            {
+              "displayName": "Observable Rule",
+              "id": "observableRule",
+              "type": "string",
+              "removed": true,
+              "required": false,
+              "display": true,
+              "defaultMatch": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        }
+      },
+      "type": "n8n-nodes-base.theHiveProject",
+      "typeVersion": 1,
+      "position": [
+        544,
+        320
+      ],
+      "id": "051a1726-b0c5-4d8a-bec9-09d24b75a0ef",
+      "name": "Create a case",
+      "credentials": {
+        "theHiveProjectApi": {
+          "id": "GZt9qrs9jA29cHSr",
+          "name": "The Hive 5 account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.body.location }}",
+                    "rightValue": "=virustotal",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "2fba82d2-4cd5-4e91-a028-f391632ba02c"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "AlertaVirusTotal"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "996323e5-1b02-4fcd-8549-02e8d8e41319",
+                    "leftValue": "={{ $json.body.location }}",
+                    "rightValue": "virustotal",
+                    "operator": {
+                      "type": "string",
+                      "operation": "notEquals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "OtrasAlertas"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        -144,
+        208
+      ],
+      "id": "873ab4c0-803d-4b2f-9174-3654cce93069",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        -512,
+        -48
+      ],
+      "id": "fe58accd-b1fd-425b-a6d4-77b05b9072c3",
+      "name": "Respond to Webhook"
+    },
+    {
+      "parameters": {
+        "jsCode": "// DEDUPLICADOR DE ALERTAS WAZUH - Tiempo Real\nconst items = $input.all();\nconst uniqueItems = [];\nconst currentBatchIds = new Set();\n\nconsole.log(`📨 Procesando ${items.length} items en este batch`);\n\nfor (let i = 0; i < items.length; i++) {\n  const item = items[i];\n  \n  try {\n    // Obtener el ID único de Wazuh desde body\n    const wazuhId = item?.body?.id;\n    \n    if (wazuhId) {\n      console.log(`📋 Procesando Wazuh ID: ${wazuhId}`);\n      \n      // Verificar si ya procesamos este ID en este batch\n      if (!currentBatchIds.has(wazuhId)) {\n        currentBatchIds.add(wazuhId);\n        \n        // Agregar metadata\n        item.body.n8n_wazuh_id = wazuhId;\n        item.body.n8n_is_unique = true;\n        item.body.n8n_processed_at = new Date().toISOString();\n        item.body.n8n_dedupe_method = 'batch_dedupe';\n        \n        uniqueItems.push(item);\n        \n        const ruleId = item?.body?.rule?.id || 'unknown';\n        const agentName = item?.body?.agent?.name || 'unknown';\n        const timestamp = item?.body?.timestamp || 'unknown';\n        \n        console.log(`✅ ÚNICA - ID: ${wazuhId}, Rule: ${ruleId}, Agent: ${agentName}, Time: ${timestamp}`);\n        \n      } else {\n        console.log(`❌ DUPLICADA en este batch - ID: ${wazuhId}`);\n      }\n      \n    } else {\n      console.log(`⚠️ Item sin ID válido`);\n      uniqueItems.push(item);\n    }\n    \n  } catch (error) {\n    console.log(`🚨 Error: ${error.message}`);\n    uniqueItems.push(item);\n  }\n}\n\nconsole.log(`\\n📈 RESUMEN:`);\nconsole.log(`📊 Items recibidos: ${items.length}`);\nconsole.log(`✅ Items únicos: ${uniqueItems.length}`);\nconsole.log(`❌ Duplicados en batch: ${items.length - uniqueItems.length}`);\n\nreturn uniqueItems;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -448,
+        208
+      ],
+      "id": "b36f1b95-a85b-4524-82cc-561324611b63",
+      "name": "Code1"
+    },
+    {
+      "parameters": {
+        "chatId": "-4975873153 ",
+        "text": "=Origen: {{ $json.body.manager.name }}\nTimeStamp: {{ $json.body.timestamp }}\nGrupo: {{ $json.body.rule.groups[0] }}\nDatos Agente\nID: {{ $json.body.agent.id }}\nName: {{ $json.body.agent.name }}\nIP: {{ $json.body.agent.ip }}\n\nAlerta: \n{{ $json.body.rule.mitre.technique[0] }}\n{{ $json.body.predecoder.program_name }}\n{{ $json.body.full_log }}\n\nWebhook: {{ $json.webhookUrl }}\n{{ $json.executionMode }}",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        304,
+        512
+      ],
+      "id": "857f4b61-5e5f-4f2c-a9d9-62bdd1bafdd8",
+      "name": "Send a text message1",
+      "webhookId": "a663e07c-7e04-46c6-8dd8-d8c032d42440",
+      "credentials": {
+        "telegramApi": {
+          "id": "YNNElKeI4PU2kQzW",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "case",
+        "caseFields": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "severity": 3,
+            "startDate": "={{ $('Webhook').item.json.body.predecoder.timestamp }}",
+            "tags": "={{ $workflow.name }}",
+            "pap": 3,
+            "tlp": 3,
+            "summary": "={{ $json.body.rule.description }}",
+            "status": "New",
+            "assignee": "agente@thehive.local",
+            "title": "={{ $('Webhook').item.json.body.rule.mitre.tactic[0] }}",
+            "description": "={{ $('Webhook').item.json.body.rule.description }}\n{{ $('Webhook').item.json.body.full_log }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "displayName": "Title",
+              "id": "title",
+              "type": "string",
+              "removed": false,
+              "required": true,
+              "display": true,
+              "defaultMatch": false
+            },
+            {
+              "displayName": "Description",
+              "id": "description",
+              "type": "string",
+              "removed": false,
+              "required": true,
+              "display": true,
+              "defaultMatch": false
+            },
+            {
+              "displayName": "Severity (Severity of information)",
+              "id": "severity",
+              "type": "options",
+              "options": [
+                {
+                  "name": "Low",
+                  "value": 1
+                },
+                {
+                  "name": "Medium",
+                  "value": 2
+                },
+                {
+                  "name": "High",
+                  "value": 3
+                },
+                {
+                  "name": "Critical",
+                  "value": 4
+                }
+              ],
+              "removed": false,
+              "required": false,
+              "display": true,
+              "defaultMatch": false
+            },
+            {
+              "displayName": "Start Date",
+              "id": "startDate",
+              "type": "dateTime",
+              "removed": false,
+              "required": false,
+              "display": true,
+              "defaultMatch": false
+            },
+            {
+              "displayName": "End Date",
+              "id": "endDate",
+              "type": "dateTime",
+              "removed": false,
+              "required": false,
+              "display": true,
+              "defaultMatch": false
+            },
+            {
+              "displayName": "Tags",
+              "id": "tags",
+              "type": "string",
+              "removed": false,
+              "required": false,
+              "display": true,
+              "defaultMatch": false
+            },
+            {
+              "displayName": "Flag",
+              "id": "flag",
+              "type": "boolean",
+              "removed": false,
+              "required": false,
+              "display": true,
+              "defaultMatch": false
+            },
+            {
+              "displayName": "TLP (Confidentiality of information)",
+              "id": "tlp",
+              "type": "options",
+              "options": [
+                {
+                  "name": "White",
+                  "value": 0
+                },
+                {
+                  "name": "Green",
+                  "value": 1
+                },
+                {
+                  "name": "Amber",
+                  "value": 2
+                },
+                {
+                  "name": "Red",
+                  "value": 3
+                }
+              ],
+              "removed": false,
+              "required": false,
+              "display": true,
+              "defaultMatch": false
+            },
+            {
+              "displayName": "PAP (Level of exposure of information)",
+              "id": "pap",
+              "type": "options",
+              "options": [
+                {
+                  "name": "White",
+                  "value": 0
+                },
+                {
+                  "name": "Green",
+                  "value": 1
+                },
+                {
+                  "name": "Amber",
+                  "value": 2
+                },
+                {
+                  "name": "Red",
+                  "value": 3
+                }
+              ],
+              "removed": false,
+              "required": false,
+              "display": true,
+              "defaultMatch": false
+            },
+            {
+              "displayName": "Summary",
+              "id": "summary",
+              "type": "string",
+              "removed": false,
+              "required": false,
+              "display": true,
+              "defaultMatch": false
+            },
+            {
+              "displayName": "Status",
+              "id": "status",
+              "type": "options",
+              "removed": false,
+              "required": false,
+              "display": true,
+              "defaultMatch": false,
+              "options": [
+                {
+                  "name": "Duplicated",
+                  "value": "Duplicated",
+                  "description": "Stage: Closed"
+                },
+                {
+                  "name": "FalsePositive",
+                  "value": "FalsePositive",
+                  "description": "Stage: Closed"
+                },
+                {
+                  "name": "Indeterminate",
+                  "value": "Indeterminate",
+                  "description": "Stage: Closed"
+                },
+                {
+                  "name": "InProgress",
+                  "value": "InProgress",
+                  "description": "Stage: InProgress"
+                },
+                {
+                  "name": "New",
+                  "value": "New",
+                  "description": "Stage: New"
+                },
+                {
+                  "name": "Other",
+                  "value": "Other",
+                  "description": "Stage: Closed"
+                },
+                {
+                  "name": "TruePositive",
+                  "value": "TruePositive",
+                  "description": "Stage: Closed"
+                }
+              ]
+            },
+            {
+              "displayName": "Assignee",
+              "id": "assignee",
+              "type": "options",
+              "removed": false,
+              "required": false,
+              "display": true,
+              "defaultMatch": false,
+              "options": [
+                {
+                  "name": "agente",
+                  "value": "agente@thehive.local"
+                }
+              ]
+            },
+            {
+              "displayName": "Case Template",
+              "id": "caseTemplate",
+              "type": "options",
+              "removed": false,
+              "required": false,
+              "display": true,
+              "defaultMatch": false,
+              "options": []
+            },
+            {
+              "displayName": "Tasks",
+              "id": "tasks",
+              "type": "array",
+              "removed": false,
+              "required": false,
+              "display": true,
+              "defaultMatch": false
+            },
+            {
+              "displayName": "Sharing Parameters",
+              "id": "sharingParameters",
+              "type": "array",
+              "removed": true,
+              "required": false,
+              "display": true,
+              "defaultMatch": false
+            },
+            {
+              "displayName": "Observable Rule",
+              "id": "observableRule",
+              "type": "string",
+              "removed": true,
+              "required": false,
+              "display": true,
+              "defaultMatch": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        }
+      },
+      "type": "n8n-nodes-base.theHiveProject",
+      "typeVersion": 1,
+      "position": [
+        640,
+        528
+      ],
+      "id": "f1b6bb4e-1e68-4795-8f79-cd9d0d979c57",
+      "name": "Create a case1",
+      "credentials": {
+        "theHiveProjectApi": {
+          "id": "GZt9qrs9jA29cHSr",
+          "name": "The Hive 5 account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Code1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a text message": {
+      "main": [
+        []
+      ]
+    },
+    "Create a case": {
+      "main": [
+        []
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        []
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Create a case",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Send a text message",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send a text message1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code1": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a text message1": {
+      "main": [
+        [
+          {
+            "node": "Create a case1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "2379ca5c-163f-42d3-b225-273d0fa5774b",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "58cbfadd484ecfeaacc12e9aedbc6311c5b7c1f841735537ec90273348d3c935"
+  },
+  "id": "yo9nHpxBidoakI6g",
+  "tags": [
+    {
+      "createdAt": "2025-07-18T03:07:45.690Z",
+      "updatedAt": "2025-07-18T03:07:45.690Z",
+      "id": "2txs8hwcegiP5Tqr",
+      "name": "TEST"
+    }
+  ]
+}
